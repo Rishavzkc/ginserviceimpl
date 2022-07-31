@@ -1,32 +1,52 @@
 package main
 
 import (
-	"Interfaceginrestapi/config"
-	"Interfaceginrestapi/controllers"
-	"Interfaceginrestapi/services"
+	"fmt"
+	"log"
 
+	"github.com/Rishavzkc/ginserviceimpl/config"
+	"github.com/Rishavzkc/ginserviceimpl/controller"
+	"github.com/Rishavzkc/ginserviceimpl/database"
+	"github.com/Rishavzkc/ginserviceimpl/service"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
-
-var (
-	db                *gorm.DB                      = config.SetupDatabaseConnection()
-	companyService    services.CompanyService       = services.NewCompanyService(db)
-	companyController controllers.CompanyController = controllers.New(companyService)
 )
 
 func main() {
-	defer config.CloseDatabaseConnection(db)
+
+	configs := config.NewConfig()
+	uri := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
+		configs.Database.Username,
+		configs.Database.Password,
+		configs.Database.Host,
+		configs.Database.Port,
+		configs.Database.Database,
+	)
+
+	db, err := database.SetupDatabaseConnection(uri)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := database.CloseDatabaseConnection(db); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	r := gin.Default()
 
-	bookRoutes := r.Group("api/company")
+	dbController := controller.New(db)
+	companyService := service.NewCompanyService(dbController)
+
+	companyRouter := r.Group("/company")
 	{
-		bookRoutes.GET("/", companyController.GetAll)
-		bookRoutes.POST("/", companyController.CreateCompany)
-		bookRoutes.GET("/:id", companyController.GetCompany)
-		bookRoutes.PUT("/:id", companyController.UpdateCompany)
-		bookRoutes.DELETE("/:id", companyController.DeleteCompany)
+		companyRouter.POST("/", companyService.CreateCompany)
+		companyRouter.GET("/", companyService.GetAllCompanies)
+		companyRouter.GET("/:id", companyService.GetCompany)
+		companyRouter.PUT("/", companyService.UpdateCompany)
+		companyRouter.DELETE("/:id", companyService.DeleteCompany)
 	}
 
-	r.Run()
+	if err := r.Run(configs.ServiceHost); err != nil {
+		log.Fatal("failure at running server: %w", err)
+	}
 }
