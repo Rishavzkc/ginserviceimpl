@@ -19,13 +19,13 @@ func main() {
 	defer config.CloseDatabaseConnection(db)
 	r := gin.Default()
 
-	bookRoutes := r.Group("api/company")
+	companyRoutes := r.Group("/company")
 	{
-		bookRoutes.GET("/", companyController.GetAll)
-		bookRoutes.POST("/", companyController.CreateCompany)
-		bookRoutes.GET("/:id", companyController.GetCompany)
-		bookRoutes.PUT("/:id", companyController.UpdateCompany)
-		bookRoutes.DELETE("/:id", companyController.DeleteCompany)
+		companyRoutes.GET("/", companyController.GetAll)
+		companyRoutes.POST("/", companyController.CreateCompany)
+		companyRoutes.GET("/:id", companyController.GetCompany)
+		companyRoutes.PUT("/:id", companyController.UpdateCompany)
+		companyRoutes.DELETE("/:id", companyController.DeleteCompany)
 	}
 
 	r.Run()

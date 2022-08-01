@@ -34,14 +34,13 @@ func (cc *CompanyController) CreateCompany(ctx *gin.Context) {
 }
 
 func (cc *CompanyController) GetCompany(ctx *gin.Context) {
-	companyname := ctx.Param("name")
-	company, err := cc.CompanyService.GetCompany(&companyname)
+	companyname := ctx.Param("id")
+	company, err := cc.CompanyService.GetCompany(companyname)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	//ctx.JSON(http.StatusOK, company)
-	ctx.JSON(http.StatusOK, gin.H{"data": company})
+	ctx.JSON(http.StatusOK, company)
 
 }
 
@@ -71,8 +70,8 @@ func (cc *CompanyController) UpdateCompany(ctx *gin.Context) {
 }
 
 func (cc *CompanyController) DeleteCompany(ctx *gin.Context) {
-	companyname := ctx.Param("name")
-	err := cc.CompanyService.DeleteCompany(&companyname)
+	companyid := ctx.Param("id")
+	err := cc.CompanyService.DeleteCompany(companyid)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
 		return
